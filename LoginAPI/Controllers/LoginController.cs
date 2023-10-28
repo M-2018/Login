@@ -1,4 +1,5 @@
 ﻿using LoginAPI.Data;
+using LoginAPI.DTO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,6 +15,38 @@ namespace LoginAPI.Controllers
         {
             this.loginDbContext = loginDbContext;
         }
+
+        //// POST para verificar el inicio de sesión
+        //[HttpPost]
+        //[Route("login")]
+        //public async Task<IActionResult> Login([FromBody] UserLoginDTO userLoginDTO)
+        //{
+        //    var login = await loginDbContext.Logins.FirstOrDefaultAsync(x => x.UserName == userLoginDTO.Username && x.Password == userLoginDTO.Password);
+
+        //    if (login != null)
+        //    {
+        //        return Ok("Login successful");
+        //    }
+
+        //    return BadRequest("Invalid username or password");
+        //}
+
+        [HttpGet]
+        [Route("login")]
+        public async Task<IActionResult> Login(string username, string password)
+        {
+            var login = await loginDbContext.Logins.FirstOrDefaultAsync(x => x.UserName == username && x.Password == password);
+
+            if (login != null)
+            {
+                return Ok(new { message = "Login successful" });
+            }
+
+            return BadRequest(new { message = "Invalid username or password" });
+        }
+
+
+
 
         //Get all logins
         [HttpGet]
