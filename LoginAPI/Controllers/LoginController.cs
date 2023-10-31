@@ -14,37 +14,9 @@ namespace LoginAPI.Controllers
         public LoginController(LoginDbContext loginDbContext)
         {
             this.loginDbContext = loginDbContext;
-        }
+        }        
 
-
-        //[HttpGet]
-        //[Route("login")]
-        //public async Task<IActionResult> Login(string username, string password)
-        //{
-        //    var login = await loginDbContext.Logins.FirstOrDefaultAsync(x => x.UserName == username && x.Password == password);
-
-        //    if (login != null)
-        //    {
-        //        return Ok(new { message = "Login successful" });
-        //    }
-
-        //    return BadRequest(new { message = "Invalid username or password" });
-        //}
-
-        //[HttpPost] // Utilizo [HttpPost] en lugar de [HttpGet] ya que estamos enviando datos en el cuerpo de la solicitud
-        //[Route("login")]
-        //public async Task<IActionResult> Login([FromBody] LoginDTO loginDto)
-        //{
-        //    var login = await loginDbContext.Logins.FirstOrDefaultAsync(x => x.UserName == loginDto.Username && x.Password == loginDto.Password);
-
-        //    if (login != null)
-        //    {
-        //        return Ok(new { message = "Login successful" });
-        //    }
-
-        //    return BadRequest(new { message = "Invalid username or password" });
-        //}
-
+        //Revisar si el usuario y password recibido del cliente coinciden con la info en base de datos
         [HttpPost]
         [Route("login")]
         public async Task<IActionResult> Login([FromBody] LoginDTO loginDto)
@@ -65,82 +37,114 @@ namespace LoginAPI.Controllers
 
             return BadRequest(new { message = "Invalid username or password" });
         }
-
-
-
-
-
-
-        //Get all logins
-        [HttpGet]
-        public async Task<IActionResult> GetAllLogins()
-        {
-            var logins = await loginDbContext.Logins.ToListAsync();
-            return Ok(logins);
-        }
-
-        //Get single login
-        [HttpGet]
-        [Route("{id:guid}")]
-        [ActionName("GetLogin")]
-        public async Task<IActionResult> GetLogin([FromRoute] Guid id)
-        {
-            var login = await loginDbContext.Logins.FirstOrDefaultAsync(x => x.Id == id);
-            if(login != null)
+             
+        //Crear usuario en base de datos teniendo en cuenta lo recibido del cliente
+            [HttpPost]
+            [Route("create")]
+            public async Task<IActionResult> CreateUser([FromBody] LoginDTO loginDto)
             {
-                return Ok(login);
-            }
-            return NotFound("Login not found");
-        }
+                try
+                {
+                    // Mapea el LoginDTO a una entidad Login
+                    var newLogin = new Login
+                    {
+                        Id = Guid.NewGuid(),
+                        UserName = loginDto.Username,
+                        Password = loginDto.Password,
+                        FullName = loginDto.FullName
+                    };
 
-        //Add login
-        [HttpPost]
-        public async Task<IActionResult> AddLogin([FromBody] Login login)
-        {
-            login.Id = Guid.NewGuid();
-            await loginDbContext.Logins.AddAsync(login);
-            await loginDbContext.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetLogin), new {id = login.Id}, login);
-        }
+                    // Agrega el nuevo usuario a la base de datos
+                    loginDbContext.Logins.Add(newLogin);
+                    await loginDbContext.SaveChangesAsync();
 
-        //Updating a login
-        [HttpPut]
-        [Route("{id:guid}")]
-        public async Task<IActionResult> UpdateLogin([FromRoute] Guid id, [FromBody] Login login)
-        {
-            //var existingCard = await cardsDbContext.Cards.FirstOrDefaultAsync(x => x.Id == id);
-
-            //var existingLogin = await LoginDbContext.Logins.FirstOrDefaultAsync(x => x.Id == id);
-            var existingLog = await loginDbContext.Logins.FirstOrDefaultAsync(x => x.Id == id);
-
-            if (existingLog != null)
-            {
-                existingLog.UserName = login.UserName;
-                existingLog.Password = login.Password;
-                existingLog.FullName = login.FullName;                
-                await loginDbContext.SaveChangesAsync();
-                return Ok(existingLog);
+                    // Devuelve el nuevo usuario creado como respuesta
+                    return Ok(new LoginDTO
+                    {
+                        Username = newLogin.UserName,
+                        Password = newLogin.Password,
+                        FullName = newLogin.FullName
+                    });
+                }
+                catch (Exception ex)
+                {
+                    // En caso de error, devuelve una respuesta de error
+                    return BadRequest(new { message = "Error al crear el usuario: " + ex.Message });
+                }
             }
 
-            return NotFound("Login not found");
 
-        }
 
-        //Delete a login
-        [HttpDelete]
-        [Route("{id:guid}")]
-        public async Task<IActionResult> DeleteCard([FromRoute] Guid id)
-        {
-            var existingLog = await loginDbContext.Logins.FirstOrDefaultAsync(x => x.Id == id);
-            if (existingLog != null)
-            {
-                loginDbContext.Remove(existingLog);
-                await loginDbContext.SaveChangesAsync();
-                return Ok(existingLog);
-            }
+        ////Get all logins
+        //[HttpGet]
+        //public async Task<IActionResult> GetAllLogins()
+        //{
+        //    var logins = await loginDbContext.Logins.ToListAsync();
+        //    return Ok(logins);
+        //}
 
-            return NotFound("Login not found");
-        }
+        ////Get single login
+        //[HttpGet]
+        //[Route("{id:guid}")]
+        //[ActionName("GetLogin")]
+        //public async Task<IActionResult> GetLogin([FromRoute] Guid id)
+        //{
+        //    var login = await loginDbContext.Logins.FirstOrDefaultAsync(x => x.Id == id);
+        //    if(login != null)
+        //    {
+        //        return Ok(login);
+        //    }
+        //    return NotFound("Login not found");
+        //}
+
+        ////Add login
+        //[HttpPost]
+        //public async Task<IActionResult> AddLogin([FromBody] Login login)
+        //{
+        //    login.Id = Guid.NewGuid();
+        //    await loginDbContext.Logins.AddAsync(login);
+        //    await loginDbContext.SaveChangesAsync();
+        //    return CreatedAtAction(nameof(GetLogin), new {id = login.Id}, login);
+        //}
+
+        ////Updating a login
+        //[HttpPut]
+        //[Route("{id:guid}")]
+        //public async Task<IActionResult> UpdateLogin([FromRoute] Guid id, [FromBody] Login login)
+        //{
+        //    //var existingCard = await cardsDbContext.Cards.FirstOrDefaultAsync(x => x.Id == id);
+
+        //    //var existingLogin = await LoginDbContext.Logins.FirstOrDefaultAsync(x => x.Id == id);
+        //    var existingLog = await loginDbContext.Logins.FirstOrDefaultAsync(x => x.Id == id);
+
+        //    if (existingLog != null)
+        //    {
+        //        existingLog.UserName = login.UserName;
+        //        existingLog.Password = login.Password;
+        //        existingLog.FullName = login.FullName;                
+        //        await loginDbContext.SaveChangesAsync();
+        //        return Ok(existingLog);
+        //    }
+
+        //    return NotFound("Login not found");
+
+        //}
+
+        ////Delete a login
+        //[HttpDelete]
+        //[Route("{id:guid}")]
+        //public async Task<IActionResult> DeleteCard([FromRoute] Guid id)
+        //{
+        //    var existingLog = await loginDbContext.Logins.FirstOrDefaultAsync(x => x.Id == id);
+        //    if (existingLog != null)
+        //    {
+        //        loginDbContext.Remove(existingLog);
+        //        await loginDbContext.SaveChangesAsync();
+        //        return Ok(existingLog);
+        //    }
+
+        //    return NotFound("Login not found");
+        //}
 
 
     }
