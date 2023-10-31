@@ -16,34 +16,57 @@ namespace LoginAPI.Controllers
             this.loginDbContext = loginDbContext;
         }
 
-        //// POST para verificar el inicio de sesión
-        //[HttpPost]
+
+        //[HttpGet]
         //[Route("login")]
-        //public async Task<IActionResult> Login([FromBody] UserLoginDTO userLoginDTO)
+        //public async Task<IActionResult> Login(string username, string password)
         //{
-        //    var login = await loginDbContext.Logins.FirstOrDefaultAsync(x => x.UserName == userLoginDTO.Username && x.Password == userLoginDTO.Password);
+        //    var login = await loginDbContext.Logins.FirstOrDefaultAsync(x => x.UserName == username && x.Password == password);
 
         //    if (login != null)
         //    {
-        //        return Ok("Login successful");
+        //        return Ok(new { message = "Login successful" });
         //    }
 
-        //    return BadRequest("Invalid username or password");
+        //    return BadRequest(new { message = "Invalid username or password" });
         //}
 
-        [HttpGet]
-        [Route("login")]
-        public async Task<IActionResult> Login(string username, string password)
-        {
-            var login = await loginDbContext.Logins.FirstOrDefaultAsync(x => x.UserName == username && x.Password == password);
+        //[HttpPost] // Utilizo [HttpPost] en lugar de [HttpGet] ya que estamos enviando datos en el cuerpo de la solicitud
+        //[Route("login")]
+        //public async Task<IActionResult> Login([FromBody] LoginDTO loginDto)
+        //{
+        //    var login = await loginDbContext.Logins.FirstOrDefaultAsync(x => x.UserName == loginDto.Username && x.Password == loginDto.Password);
 
-            if (login != null)
+        //    if (login != null)
+        //    {
+        //        return Ok(new { message = "Login successful" });
+        //    }
+
+        //    return BadRequest(new { message = "Invalid username or password" });
+        //}
+
+        [HttpPost]
+        [Route("login")]
+        public async Task<IActionResult> Login([FromBody] LoginDTO loginDto)
+        {
+            var user = await loginDbContext.Logins.FirstOrDefaultAsync(x => x.UserName == loginDto.Username && x.Password == loginDto.Password);
+
+            if (user != null)
             {
-                return Ok(new { message = "Login successful" });
+                // Mapea el usuario a un objeto LoginDTO antes de devolverlo
+                var userDto = new LoginDTO
+                {
+                    Username = user.UserName,
+                    Password = user.Password,
+                    FullName = user.FullName
+                };
+                return Ok(userDto); // Devuelve el usuario como JSON
             }
 
             return BadRequest(new { message = "Invalid username or password" });
         }
+
+
 
 
 
